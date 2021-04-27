@@ -1,48 +1,62 @@
 #pragma once
 #include <set>
 #include <vector>
-#include <functional>
-#include "from.h"
+#include <iterator>
 
 using std::set;
 using std::vector;
-using std::hash;
+using std::iterator_traits;
 
 
 
 
-template <class G>
-auto vertices(G& x) {
-  using K = typename G::TKey;
-  vector<K> a;
-  a.reserve(x.order());
-  for (auto u : x.vertices())
-    a.push_back(u);
+template <class I, class C>
+void setFrom(C& a, I&& x) {
+  a.clear();
+  a.insert(x.begin(), x.end());
+}
+
+template <class I>
+auto setFrom(I&& x) {
+  using T = typename std::iterator_traits<I>::value_type;
+  set<T> a; setFrom(a, x);
   return a;
 }
 
 
-template <class G, class F>
-auto verticesBy(G& x, F fm) {
-  auto a = vertices(x);
-  sort(a.begin(), a.end(), [&](auto u, auto v) {
-    return fm(u) < fm(v);
-  });
+template<class T>
+auto setFrom(vector<vector<T>>& x, int i=0) {
+  set<T> a;
+  for (auto& vs : x)
+    a.insert(vs.begin()+i, vs.end());
   return a;
 }
 
 
-template <class G, class S, class K>
-size_t vertexHash(G& x, S& es, K u) {
-  size_t a = 0;
-  setFrom(es, x.edges(u));
-  for (K v : es)
-    a ^= hash<K>{}(v) + 0x9e3779b9 + (a<<6) + (a>>2); // from boost::hash_combine
+
+
+template <class T>
+auto indexMapFrom(vector<T>& x) {
+  unordered_map<T, int> a;
+  for (int i=0, I=x.size(); i<I; i++)
+    a[x[i]] = i;
   return a;
 }
 
-template <class G, class K>
-size_t vertexHash(G& x, K u) {
-  set<K> es;
-  return vertexHash(x, es, u);
+
+
+
+template <class I, class C>
+void vectorFrom(C& a, I&& x) {
+  a.clear();
+  a.reserve(x.size());
+  for (auto v : x)
+    a.push_back(v);
+}
+
+template <class I>
+auto vectorFrom(I&& x) {
+  using T = typename std::iterator_traits<I>::value_type;
+  vector<T> a; vectorFrom(a, x);
+  return a;
 }
