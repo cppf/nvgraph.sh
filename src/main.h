@@ -10,6 +10,7 @@
 #include "count.h"
 #include "erase.h"
 #include "find.h"
+#include "filter.h"
 #include "from.h"
 #include "range.h"
 #include "transform.h"
