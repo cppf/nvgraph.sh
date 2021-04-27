@@ -14,6 +14,7 @@
 #include "from.h"
 #include "range.h"
 #include "transform.h"
+#include "stringify.h"
 #include "read.h"
 #include "write.h"
 #include "vertices.h"

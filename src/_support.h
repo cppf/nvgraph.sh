@@ -1,4 +1,7 @@
 #pragma once
+#include <string>
+
+using std::string;
 
 
 
@@ -13,6 +16,7 @@ typedef unsigned char uint8;
 #define UINT8 uint8
 #endif
 
+
 #ifndef NONE
 struct None {
   friend bool operator==(None a, None b) noexcept { return true; }
@@ -26,6 +30,7 @@ struct None {
 #define NONE None
 #endif
 
+
 #ifndef IDENTITY
 struct Identity {
   template <class T>
@@ -33,6 +38,9 @@ struct Identity {
 };
 #define IDENTITY Identity()
 #endif
+
+
+string to_string(string x) { return x; }
 
 
 
