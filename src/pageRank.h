@@ -17,6 +17,7 @@ auto pageRank(float& t, G& x, float p=0.85f, float E=1e-6f) {
   vector<cudaDataType_t> vtype {CUDA_R_32F, CUDA_R_32F};
   vector<cudaDataType_t> etype {CUDA_R_32F};
   vector<float> ranks(x.order());
+  auto ks    = vertices(x);
   auto vfrom = sourceOffsets(x);
   auto efrom = destinationIndices(x);
   auto vdata = vertexData(x);
@@ -42,5 +43,5 @@ auto pageRank(float& t, G& x, float p=0.85f, float E=1e-6f) {
 
   TRY( nvgraphDestroyGraphDescr(h, g) );
   TRY( nvgraphDestroy(h) );
-  return ranks;
+  return vertexContainer(x, ranks, ks);
 }
