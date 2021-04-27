@@ -60,6 +60,6 @@ void transposeForNvgraph(H& a, G& x) {
 template <class G>
 auto transposeForNvgraph(G& x) {
   using K = typename G::TKey;
-  DiGraph<K, float, float> a; transposeWithDegree(a, x);
+  DiGraph<K, float, float> a; transposeForNvgraph(a, x);
   return a;
 }

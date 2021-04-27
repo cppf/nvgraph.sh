@@ -16,15 +16,13 @@ void runPageRank(G& x, bool all) {
 
 
 int main(int argc, char **argv) {
-  DiGraph<> g;
-  DiGraph<int, float, float> h;
   char *file = argv[1];
   bool all = argc > 2;
 
   printf("Loading graph %s ...\n", file);
-  readMtx(file, g);
+  auto g = readMtx(file);
   print(g);
-  transposeForNvgraph(g, h);
+  auto h = transposeForNvgraph(g);
   print(h);
   runPageRank(h, all);
   printf("\n");
