@@ -20,5 +20,5 @@
 #include "vertices.h"
 #include "edges.h"
 #include "transpose.h"
-#include "pageRank.h"
+#include "pagerank.h"
 #include "traversal.h"

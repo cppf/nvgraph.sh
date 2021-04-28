@@ -20,7 +20,7 @@ struct RunOptions {
   string format = "json";
 };
 
-struct RunPageRankOptions : public RunOptions {
+struct RunPagerankOptions : public RunOptions {
   float  alpha = 0.85;
   float  tolerance = 1e-6;
   int    max_iter = 500;
@@ -29,6 +29,8 @@ struct RunPageRankOptions : public RunOptions {
 struct RunTraversalBfsOptions : public RunOptions {
   int source = 1;
 };
+
+struct RunTriangleCountOptions : public RunOptions {};
 
 
 
@@ -52,7 +54,7 @@ void runParse(RunOptions& o, int argc, char **argv, F fn) {
   o.error = estream.str();
 }
 
-void runPageRankParse(RunPageRankOptions& o, int argc, char **argv) {
+void runPagerankParse(RunPagerankOptions& o, int argc, char **argv) {
   runParse(o, argc, argv, [&](auto k, auto v) {
     if      (k=="-a" || k=="--alpha")     o.alpha     = stof(v());
     else if (k=="-t" || k=="--tolerance") o.tolerance = stof(v());
@@ -65,6 +67,16 @@ void runPageRankParse(RunPageRankOptions& o, int argc, char **argv) {
 void runTraversalBfsParse(RunTraversalBfsOptions& o, int argc, char **argv) {
   runParse(o, argc, argv, [&](auto k, auto v) {
     if (k=="-s" || k=="--source") o.source = stoi(v());
+    else return false;
+    return true;
+  });
+}
+
+void runTriangleCountParse(RunPagerankOptions& o, int argc, char **argv) {
+  runParse(o, argc, argv, [&](auto k, auto v) {
+    if      (k=="-a" || k=="--alpha")     o.alpha     = stof(v());
+    else if (k=="-t" || k=="--tolerance") o.tolerance = stof(v());
+    else if (k=="-i" || k=="--max_iter")  o.max_iter  = stoi(v());
     else return false;
     return true;
   });
@@ -87,7 +99,7 @@ string runVerify(RunOptions& o, F fn) {
   return fn();
 }
 
-string runPageRankVerify(RunPageRankOptions& o) {
+string runPagerankVerify(RunPagerankOptions& o) {
   return runVerify(o, [&]() {
     if (o.alpha<0 || o.alpha>1) return "alpha must be between 0 and 1";
     if (o.tolerance<1e-10 || o.tolerance>1) return "tolerance must be between 1e-10 and 1";
@@ -131,7 +143,7 @@ void runOutput(RunOptions& o, G& x, F fn) {
 }
 
 template <class G, class C>
-void runPageRankOutput(RunPageRankOptions& o, G& x, float t, C& ranks) {
+void runPagerankOutput(RunPagerankOptions& o, G& x, float t, C& ranks) {
   runOutput(o, x, [&](auto& s) {
     writeValue (s, "alpha",     o.alpha,     o.format);
     writeValue (s, "tolerance", o.tolerance, o.format);
@@ -156,17 +168,17 @@ void runTraversalBfsOutput(RunTraversalBfsOptions& o, G& x, float t, C& dists, C
 // RUN-*
 // -----
 
-void runPageRank(int argc, char **argv) {
-  RunPageRankOptions o; string e; float t;
-  runPageRankParse(o, argc, argv);
-  runPageRankVerify(o);
+void runPagerank(int argc, char **argv) {
+  RunPagerankOptions o; string e; float t;
+  runPagerankParse(o, argc, argv);
+  runPagerankVerify(o);
   if (!e.empty()) { cerr << "error: " << e << '\n'; return; }
   printf("Loading graph %s ...\n", o.input.c_str());
   auto x  = readMtx(o.input.c_str()); print(x);
   auto xt = transposeForNvgraph(x);   print(xt);
-  auto ranks = pageRank(t, xt, o.alpha, o.tolerance, o.max_iter);
+  auto ranks = pagerank(t, xt, o.alpha, o.tolerance, o.max_iter);
   printf("[%.1f ms] nvgraphPagerank\n", t);
-  if (!o.output.empty()) runPageRankOutput(o, x, t, ranks);
+  if (!o.output.empty()) runPagerankOutput(o, x, t, ranks);
 }
 
 
