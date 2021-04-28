@@ -17,7 +17,7 @@ struct TraversalBfsResult {
 
 template <class C>
 auto traversalBfsResult(C dists, C preds) {
-  return TraversalBfs<C> {dists, preds};
+  return TraversalBfsResult<C> {dists, preds};
 }
 
 
@@ -40,8 +40,8 @@ auto traversalBfs(float& t, G& x, K u) {
 
   csr.nvertices = x.order();
   csr.nedges    = x.size();
-  csr.destination_offsets = vfrom.data();
-  csr.source_indices      = efrom.data();
+  csr.source_offsets      = vfrom.data();
+  csr.destination_indices = efrom.data();
   TRY( nvgraphSetGraphStructure(h, g, &csr, NVGRAPH_CSR_32) );
   TRY( nvgraphAllocateVertexData(h, g, vtype.size(), vtype.data()) );
 
