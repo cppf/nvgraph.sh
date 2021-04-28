@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 #include <string>
 #include <cstring>
 #include <ostream>
@@ -31,6 +32,16 @@ struct RunTraversalBfsOptions : public RunOptions {
 };
 
 struct RunTriangleCountOptions : public RunOptions {};
+
+
+
+
+// RUN-ERROR
+bool runError(string& e) {
+  if (e.empty()) return false;
+  cerr << "error: " << e << '\n';
+  return true;
+}
 
 
 
@@ -72,14 +83,8 @@ void runTraversalBfsParse(RunTraversalBfsOptions& o, int argc, char **argv) {
   });
 }
 
-void runTriangleCountParse(RunPagerankOptions& o, int argc, char **argv) {
-  runParse(o, argc, argv, [&](auto k, auto v) {
-    if      (k=="-a" || k=="--alpha")     o.alpha     = stof(v());
-    else if (k=="-t" || k=="--tolerance") o.tolerance = stof(v());
-    else if (k=="-i" || k=="--max_iter")  o.max_iter  = stoi(v());
-    else return false;
-    return true;
-  });
+void runTriangleCountParse(RunTriangleCountOptions& o, int argc, char **argv) {
+  runParse(o, argc, argv, [](auto k, auto v) { return false; });
 }
 
 
@@ -88,38 +93,35 @@ void runTriangleCountParse(RunPagerankOptions& o, int argc, char **argv) {
 // RUN-*-VERIFY
 // ------------
 
-template <class F>
-string runVerify(RunOptions& o, F fn) {
+string runVerify(RunOptions& o) {
+  stringstream s;
   if (!o.error.empty()) return o.error;
   if (o.input.empty()) return "no input file given";
   if (!(o.format=="json" || o.format=="yaml")) {
-    stringstream a; a << "unknown format \"" << o.format << "\"";
-    return a.str();
+    s << "unknown format \"" << o.format << "\"";
+    return s.str();
   }
-  return fn();
+  return "";
 }
 
 string runPagerankVerify(RunPagerankOptions& o) {
-  return runVerify(o, [&]() {
-    if (o.alpha<0 || o.alpha>1) return "alpha must be between 0 and 1";
-    if (o.tolerance<1e-10 || o.tolerance>1) return "tolerance must be between 1e-10 and 1";
-    return "";
-  });
-}
-
-string runTraversalBfsVerify(RunTraversalBfsOptions& o) {
-  return runVerify(o, []() { return ""; });
+  string e = runVerify(o);
+  if (!e.empty()) return e;
+  if (o.alpha<0 || o.alpha>1) return "alpha must be between 0 and 1";
+  if (o.tolerance<1e-10 || o.tolerance>1) return "tolerance must be between 1e-10 and 1";
+  return "";
 }
 
 template <class G>
 string runTraversalBfsVerify(RunTraversalBfsOptions& o, G& x) {
-  return runVerify(o, [&]() {
-    if (!x.hasVertex(o.source)) {
-      stringstream a; a << "source vertex \"" << o.source << "\" not in graph";
-      return a.str();
-    }
-    return string();
-  });
+  stringstream s;
+  string e = runVerify(o);
+  if (!e.empty()) return e;
+  if (!x.hasVertex(o.source)) {
+    s << "source vertex \"" << o.source << "\" not in graph";
+    return s.str();
+  }
+  return "";
 }
 
 
@@ -162,6 +164,13 @@ void runTraversalBfsOutput(RunTraversalBfsOptions& o, G& x, float t, C& dists, C
   });
 }
 
+template <class G>
+void runTriangleCountOutput(RunTriangleCountOptions& o, G& x, float t, uint64_t count) {
+  runOutput(o, x, [&](stringstream& s) {
+    writeValue(s, "count", count, o.format);
+  });
+}
+
 
 
 
@@ -172,7 +181,7 @@ void runPagerank(int argc, char **argv) {
   RunPagerankOptions o; string e; float t;
   runPagerankParse(o, argc, argv);
   runPagerankVerify(o);
-  if (!e.empty()) { cerr << "error: " << e << '\n'; return; }
+  if (runError(e)) return;
   printf("Loading graph %s ...\n", o.input.c_str());
   auto x  = readMtx(o.input.c_str()); print(x);
   auto xt = transposeForNvgraph(x);   print(xt);
@@ -185,13 +194,26 @@ void runPagerank(int argc, char **argv) {
 void runTraversalBfs(int argc, char **argv) {
   RunTraversalBfsOptions o; string e; float t;
   runTraversalBfsParse(o, argc, argv);
-  e = runTraversalBfsVerify(o);
-  if (!e.empty()) { cerr << "error: " << e << '\n'; return; }
+  e = runVerify(o);
+  if (runError(e)) return;
   printf("Loading graph %s ...\n", o.input.c_str());
   auto x = readMtx(o.input.c_str()); print(x);
   e = runTraversalBfsVerify(o, x);
-  if (!e.empty()) { cerr << "error: " << e << '\n'; return; }
+  if (runError(e)) return;
   auto [dists, preds] = traversalBfs(t, x, o.source);
   printf("[%.1f ms] nvgraphTraversalBfs\n", t);
   if (!o.output.empty()) runTraversalBfsOutput(o, x, t, dists, preds);
+}
+
+
+void runTriangleCount(int argc, char **argv) {
+  RunTriangleCountOptions o; string e; float t;
+  runTriangleCountParse(o, argc, argv);
+  e = runVerify(o);
+  if (runError(e)) return;
+  printf("Loading graph %s ...\n", o.input.c_str());
+  auto x = readMtx(o.input.c_str()); print(x);
+  uint64_t count = triangleCount(t, x);
+  printf("[%.1f ms] nvgraphTriangleCount\n", t);
+  if (!o.output.empty()) runTriangleCountOutput(o, x, t, count);
 }

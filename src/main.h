@@ -21,4 +21,5 @@
 #include "edges.h"
 #include "transpose.h"
 #include "pagerank.h"
+#include "triangleCount.h"
 #include "traversal.h"
