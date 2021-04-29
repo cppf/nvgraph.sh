@@ -21,17 +21,18 @@ struct RunOptions {
   string format = "json";
 };
 
+struct RunSsspOptions : public RunOptions {
+  int source = 1;
+};
+
 struct RunPagerankOptions : public RunOptions {
   float  alpha = 0.85;
   float  tolerance = 1e-6;
   int    max_iter = 500;
 };
 
-struct RunTraversalBfsOptions : public RunOptions {
-  int source = 1;
-};
-
-struct RunTriangleCountOptions : public RunOptions {};
+typedef RunOptions RunTriangleCountOptions;
+typedef RunSsspOptions RunTraversalBfsOptions;
 
 
 
@@ -41,6 +42,16 @@ bool runError(string& e) {
   if (e.empty()) return false;
   cerr << "error: " << e << '\n';
   return true;
+}
+
+
+// RUN-WRITE
+void runWrite(stringstream& s, RunOptions& o) {
+  ofstream f(o.output);
+  writeBegin(f, o.format);
+  f << s.rdbuf();
+  writeEnd(s, o.format);
+  f.close();
 }
 
 
@@ -65,6 +76,14 @@ void runParse(RunOptions& o, int argc, char **argv, F fn) {
   o.error = estream.str();
 }
 
+void runSsspParse(RunSsspOptions& o, int argc, char **argv) {
+  runParse(o, argc, argv, [&](auto k, auto v) {
+    if (k=="-s" || k=="--source") o.source = stoi(v());
+    else return false;
+    return true;
+  });
+}
+
 void runPagerankParse(RunPagerankOptions& o, int argc, char **argv) {
   runParse(o, argc, argv, [&](auto k, auto v) {
     if      (k=="-a" || k=="--alpha")     o.alpha     = stof(v());
@@ -76,11 +95,7 @@ void runPagerankParse(RunPagerankOptions& o, int argc, char **argv) {
 }
 
 void runTraversalBfsParse(RunTraversalBfsOptions& o, int argc, char **argv) {
-  runParse(o, argc, argv, [&](auto k, auto v) {
-    if (k=="-s" || k=="--source") o.source = stoi(v());
-    else return false;
-    return true;
-  });
+  runSsspParse(o, argc, argv);
 }
 
 void runTriangleCountParse(RunTriangleCountOptions& o, int argc, char **argv) {
@@ -104,16 +119,8 @@ string runVerify(RunOptions& o) {
   return "";
 }
 
-string runPagerankVerify(RunPagerankOptions& o) {
-  string e = runVerify(o);
-  if (!e.empty()) return e;
-  if (o.alpha<0 || o.alpha>1) return "alpha must be between 0 and 1";
-  if (o.tolerance<1e-10 || o.tolerance>1) return "tolerance must be between 1e-10 and 1";
-  return "";
-}
-
 template <class G>
-string runTraversalBfsVerify(RunTraversalBfsOptions& o, G& x) {
+string runSsspVerify(RunSsspOptions& o, G& x) {
   stringstream s;
   string e = runVerify(o);
   if (!e.empty()) return e;
@@ -124,51 +131,64 @@ string runTraversalBfsVerify(RunTraversalBfsOptions& o, G& x) {
   return "";
 }
 
+string runPagerankVerify(RunPagerankOptions& o) {
+  string e = runVerify(o);
+  if (!e.empty()) return e;
+  if (o.alpha<0 || o.alpha>1) return "alpha must be between 0 and 1";
+  if (o.tolerance<1e-10 || o.tolerance>1) return "tolerance must be between 1e-10 and 1";
+  return "";
+}
+
+template <class G>
+string runTraversalBfsVerify(RunTraversalBfsOptions& o, G& x) {
+  return runSsspVerify(o, x);
+}
+
 
 
 
 // RUN-*-OUTPUT
 // ------------
 
-template <class G, class F>
-void runOutput(RunOptions& o, G& x, F fn) {
-  stringstream s;
-  writeBegin(s, o.format);
-  writeValue(s, "input", o.input,   o.format);
-  writeValue(s, "order", x.order(), o.format);
-  writeValue(s, "size",  x.size(),  o.format);
-  fn(s);
-  writeEnd(s, o.format);
-  ofstream f(o.output);
-  f << s.rdbuf();
-  f.close();
+template <class G>
+void runOutput(ostream& a, RunOptions& o, G& x) {
+  writeValue(a, "input", o.input,   o.format);
+  writeValue(a, "order", x.order(), o.format);
+  writeValue(a, "size",  x.size(),  o.format);
 }
 
 template <class G, class C>
-void runPagerankOutput(RunPagerankOptions& o, G& x, float t, C& ranks) {
-  runOutput(o, x, [&](auto& s) {
-    writeValue (s, "alpha",     o.alpha,     o.format);
-    writeValue (s, "tolerance", o.tolerance, o.format);
-    writeValue (s, "max_iter",  o.max_iter,  o.format);
-    writeValue (s, "time_ms",   t,           o.format);
-    writeValues(s, "ranks",     ranks,       o.format);
-  });
+void runSsspOutput(ostream& a, RunSsspOptions& o, G& x, float t, C& dists) {
+  runOutput(a, o, x);
+  writeValue (a, "source",    o.source, o.format);
+  writeValue (a, "time_ms",   t,        o.format);
+  writeValues(a, "distances", dists,    o.format);
 }
 
 template <class G, class C>
-void runTraversalBfsOutput(RunTraversalBfsOptions& o, G& x, float t, C& dists, C& preds) {
-  runOutput(o, x, [&](auto& s) {
-    writeValue (s, "source",       o.source, o.format);
-    writeValues(s, "distances",    dists,    o.format);
-    writeValues(s, "predecessors", preds,    o.format);
-  });
+void runPagerankOutput(ostream& a, RunPagerankOptions& o, G& x, float t, C& ranks) {
+  runOutput(a, o, x);
+  writeValue (a, "alpha",     o.alpha,     o.format);
+  writeValue (a, "tolerance", o.tolerance, o.format);
+  writeValue (a, "max_iter",  o.max_iter,  o.format);
+  writeValue (a, "time_ms",   t,           o.format);
+  writeValues(a, "ranks",     ranks,       o.format);
+}
+
+template <class G, class C>
+void runTraversalBfsOutput(ostream& a, RunTraversalBfsOptions& o, G& x, float t, C& dists, C& preds) {
+  runOutput(a, o, x);
+  writeValue (a, "source",       o.source, o.format);
+  writeValue (a, "time_ms",      t,        o.format);
+  writeValues(a, "distances",    dists,    o.format);
+  writeValues(a, "predecessors", preds,    o.format);
 }
 
 template <class G>
-void runTriangleCountOutput(RunTriangleCountOptions& o, G& x, float t, uint64_t count) {
-  runOutput(o, x, [&](stringstream& s) {
-    writeValue(s, "count", count, o.format);
-  });
+void runTriangleCountOutput(ostream& a, RunTriangleCountOptions& o, G& x, float t, uint64_t count) {
+  runOutput(a, o, x);
+  writeValue(a, "time_ms", t,     o.format);
+  writeValue(a, "count",   count, o.format);
 }
 
 
@@ -177,8 +197,27 @@ void runTriangleCountOutput(RunTriangleCountOptions& o, G& x, float t, uint64_t 
 // RUN-*
 // -----
 
+
+void runSssp(int argc, char **argv) {
+  RunSsspOptions o; float t;
+  stringstream s; string e;
+  runSsspParse(o, argc, argv);
+  e = runVerify(o);
+  if (runError(e)) return;
+  printf("Loading graph %s ...\n", o.input.c_str());
+  auto x = readMtx(o.input.c_str()); print(x);
+  e = runSsspVerify(o, x);
+  if (runError(e)) return;
+  auto dists = sssp(t, x, o.source);
+  printf("[%.1f ms] nvgraphSssp\n", t);
+  if (o.output.empty()) return;
+  runSsspOutput(s, o, x, t, dists);
+  runWrite(s, o);
+}
+
 void runPagerank(int argc, char **argv) {
-  RunPagerankOptions o; string e; float t;
+  RunPagerankOptions o; float t;
+  stringstream s; string e;
   runPagerankParse(o, argc, argv);
   runPagerankVerify(o);
   if (runError(e)) return;
@@ -187,12 +226,15 @@ void runPagerank(int argc, char **argv) {
   auto xt = transposeForNvgraph(x);   print(xt);
   auto ranks = pagerank(t, xt, o.alpha, o.tolerance, o.max_iter);
   printf("[%.1f ms] nvgraphPagerank\n", t);
-  if (!o.output.empty()) runPagerankOutput(o, x, t, ranks);
+  if (o.output.empty()) return;
+  runPagerankOutput(s, o, x, t, ranks);
+  runWrite(s, o);
 }
 
 
 void runTraversalBfs(int argc, char **argv) {
-  RunTraversalBfsOptions o; string e; float t;
+  RunTraversalBfsOptions o; float t;
+  stringstream s; string e;
   runTraversalBfsParse(o, argc, argv);
   e = runVerify(o);
   if (runError(e)) return;
@@ -202,12 +244,15 @@ void runTraversalBfs(int argc, char **argv) {
   if (runError(e)) return;
   auto [dists, preds] = traversalBfs(t, x, o.source);
   printf("[%.1f ms] nvgraphTraversalBfs\n", t);
-  if (!o.output.empty()) runTraversalBfsOutput(o, x, t, dists, preds);
+  if (o.output.empty()) return;
+  runTraversalBfsOutput(s, o, x, t, dists, preds);
+  runWrite(s, o);
 }
 
 
 void runTriangleCount(int argc, char **argv) {
-  RunTriangleCountOptions o; string e; float t;
+  RunTriangleCountOptions o; float t;
+  stringstream s; string e;
   runTriangleCountParse(o, argc, argv);
   e = runVerify(o);
   if (runError(e)) return;
@@ -215,5 +260,6 @@ void runTriangleCount(int argc, char **argv) {
   auto x = readMtx(o.input.c_str()); print(x);
   uint64_t count = triangleCount(t, x);
   printf("[%.1f ms] nvgraphTriangleCount\n", t);
-  if (!o.output.empty()) runTriangleCountOutput(o, x, t, count);
+  runTriangleCountOutput(s, o, x, t, count);
+  runWrite(s, o);
 }
