@@ -19,6 +19,7 @@ struct RunOptions {
   string input;
   string output;
   string format = "json";
+  bool   full   = false;
 };
 
 struct RunPagerankOptions : public RunOptions {
@@ -68,8 +69,9 @@ void runParse(RunOptions& o, int argc, char **argv, F fn) {
     size_t e = a.find('=');
     string k = a.substr(0, e);
     auto v = [&]() { return e==string::npos? argv[++i] : a.substr(e+1); };
-    if (a.find('-')!=0)                o.input = a;
+    if (a.find('-')!=0)                o.input  = a;
     else if (k=="-o" || k=="--output") o.output = v();
+    else if (k=="-f" || k=="--full")   o.full   = true;
     else if (!fn(k, v)) estream << "unknown option \"" << k << "\"";
   }
   size_t e = o.output.rfind('.');
@@ -165,31 +167,31 @@ void runPagerankOutput(ostream& a, RunPagerankOptions& o, G& x, float t, C& rank
   writeValue (a, "tolerance", o.tolerance, o.format);
   writeValue (a, "max_iter",  o.max_iter,  o.format);
   writeValue (a, "time_ms",   t,           o.format);
-  writeValues(a, "ranks",     ranks,       o.format);
+  if (o.full) writeValues(a, "ranks", ranks, o.format);
 }
 
 template <class G, class C>
 void runSsspOutput(ostream& a, RunSsspOptions& o, G& x, float t, C& dists) {
   runOutput(a, o, x);
-  writeValue (a, "source",    o.source, o.format);
-  writeValue (a, "time_ms",   t,        o.format);
-  writeValues(a, "distances", dists,    o.format);
+  writeValue (a, "source",  o.source, o.format);
+  writeValue (a, "time_ms", t,        o.format);
+  if (o.full) writeValues(a, "distances", dists, o.format);
 }
 
 template <class G>
 void runTriangleCountOutput(ostream& a, RunTriangleCountOptions& o, G& x, float t, uint64_t count) {
   runOutput(a, o, x);
-  writeValue(a, "time_ms", t,     o.format);
-  writeValue(a, "count",   count, o.format);
+  writeValue(a, "time_ms", t, o.format);
+  if (o.full) writeValue(a, "count", count, o.format);
 }
 
 template <class G, class C>
 void runTraversalBfsOutput(ostream& a, RunTraversalBfsOptions& o, G& x, float t, C& dists, C& preds) {
   runOutput(a, o, x);
-  writeValue (a, "source",       o.source, o.format);
-  writeValue (a, "time_ms",      t,        o.format);
-  writeValues(a, "distances",    dists,    o.format);
-  writeValues(a, "predecessors", preds,    o.format);
+  writeValue (a, "source",  o.source, o.format);
+  writeValue (a, "time_ms", t,        o.format);
+  if (o.full) writeValues(a, "distances",    dists, o.format);
+  if (o.full) writeValues(a, "predecessors", preds, o.format);
 }
 
 
