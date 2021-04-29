@@ -22,9 +22,9 @@ struct RunOptions {
 };
 
 struct RunPagerankOptions : public RunOptions {
-  float  alpha = 0.85;
+  float  alpha     = 0.85;
   float  tolerance = 1e-6;
-  int    max_iter = 500;
+  int    max_iter  = 500;
 };
 
 struct RunSsspOptions : public RunOptions {
@@ -70,10 +70,11 @@ void runParse(RunOptions& o, int argc, char **argv, F fn) {
     auto v = [&]() { return e==string::npos? argv[++i] : a.substr(e+1); };
     if (a.find('-')!=0)                o.input = a;
     else if (k=="-o" || k=="--output") o.output = v();
-    else if (k=="-f" || k=="--format") o.format = v();
     else if (!fn(k, v)) estream << "unknown option \"" << k << "\"";
   }
-  o.error = estream.str();
+  size_t e = o.output.rfind('.');
+  o.format = e==string::npos? o.output.substr(e+1) : "json";
+  o.error  = estream.str();
 }
 
 void runPagerankParse(RunPagerankOptions& o, int argc, char **argv) {
