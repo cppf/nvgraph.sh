@@ -273,7 +273,7 @@ void runTraversalBfs(int argc, char **argv) {
   auto x = readMtx(o.input.c_str()); print(x);
   e = runTraversalBfsVerify(o, x);
   if (runError(e)) return;
-  auto [dists, preds] = traversalBfs(t, x, o.source);
+  auto [dists, preds] = traversalBfs(t, x, o.source, o.alpha, o.beta);
   printf("[%.1f ms] nvgraphTraversalBfs\n", t);
   if (o.output.empty()) return;
   runTraversalBfsOutput(s, o, x, t, dists, preds);

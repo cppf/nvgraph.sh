@@ -24,7 +24,7 @@ auto traversalBfsResult(C dists, C preds) {
 
 
 template <class G, class K>
-auto traversalBfs(float& t, G& x, K u) {
+auto traversalBfs(float& t, G& x, K u, size_t alpha, size_t beta) {
   nvgraphHandle_t     h;
   nvgraphGraphDescr_t g;
   struct nvgraphCSRTopology32I_st csr;
@@ -50,6 +50,8 @@ auto traversalBfs(float& t, G& x, K u) {
   nvgraphTraversalSetDistancesIndex(&p, 0);
   nvgraphTraversalSetPredecessorsIndex(&p, 1);
   nvgraphTraversalSetUndirectedFlag(&p, false);
+  if (alpha>0) nvgraphTraversalSetAlpha(&p, alpha);
+  if (beta>0)  nvgraphTraversalSetBeta (&p, beta);
 
   t = measureDuration([&]() { TRY( nvgraphTraversal(h, g, NVGRAPH_TRAVERSAL_BFS, &u, p) ); });
   TRY( nvgraphGetVertexData(h, g, dists.data(), 0) );
