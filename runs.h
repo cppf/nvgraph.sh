@@ -224,7 +224,7 @@ void runSssp(int argc, char **argv) {
   e = runSsspVerify(o, x);
   if (runError(e)) return;
   auto dists = sssp(t, x, o.source);
-  printf("[%.1f ms] nvgraphSssp\n", t);
+  printf("[%.3f ms] nvgraphSssp\n", t);
   if (o.output.empty()) return;
   runSsspOutput(s, o, x, t, dists);
   runWrite(s, o);
@@ -241,7 +241,7 @@ void runPagerank(int argc, char **argv) {
   auto x  = readMtx(o.input.c_str()); print(x);
   auto xt = transposeForNvgraph(x);   print(xt);
   auto ranks = pagerank(t, xt, o.alpha, o.tolerance, o.max_iter);
-  printf("[%.1f ms] nvgraphPagerank\n", t);
+  printf("[%.3f ms] nvgraphPagerank\n", t);
   if (o.output.empty()) return;
   runPagerankOutput(s, o, x, t, ranks);
   runWrite(s, o);
@@ -257,7 +257,7 @@ void runTriangleCount(int argc, char **argv) {
   printf("Loading graph %s ...\n", o.input.c_str());
   auto x = readMtx(o.input.c_str()); print(x);
   uint64_t count = triangleCount(t, x);
-  printf("[%.1f ms] nvgraphTriangleCount\n", t);
+  printf("[%.3f ms] nvgraphTriangleCount\n", t);
   runTriangleCountOutput(s, o, x, t, count);
   runWrite(s, o);
 }
@@ -274,7 +274,7 @@ void runTraversalBfs(int argc, char **argv) {
   e = runTraversalBfsVerify(o, x);
   if (runError(e)) return;
   auto [dists, preds] = traversalBfs(t, x, o.source, o.alpha, o.beta);
-  printf("[%.1f ms] nvgraphTraversalBfs\n", t);
+  printf("[%.3f ms] nvgraphTraversalBfs\n", t);
   if (o.output.empty()) return;
   runTraversalBfsOutput(s, o, x, t, dists, preds);
   runWrite(s, o);
