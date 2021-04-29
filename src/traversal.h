@@ -1,10 +1,12 @@
 #pragma once
 #include <vector>
+#include <algorithm>
 #include "_nvgraph.h"
 #include "vertices.h"
 #include "edges.h"
 
 using std::vector;
+using std::find;
 
 
 
@@ -34,6 +36,7 @@ auto traversalBfs(float& t, G& x, K u, size_t alpha, size_t beta) {
   auto ks    = vertices(x);
   auto vfrom = sourceOffsets(x);
   auto efrom = destinationIndices(x);
+  int i = find(ks.begin(), ks.end(), u) - ks.begin();
 
   TRY( nvgraphCreate(&h) );
   TRY( nvgraphCreateGraphDescr(h, &g) );
@@ -53,7 +56,7 @@ auto traversalBfs(float& t, G& x, K u, size_t alpha, size_t beta) {
   if (alpha>0) nvgraphTraversalSetAlpha(&p, alpha);
   if (beta>0)  nvgraphTraversalSetBeta (&p, beta);
 
-  t = measureDuration([&]() { TRY( nvgraphTraversal(h, g, NVGRAPH_TRAVERSAL_BFS, &u, p) ); });
+  t = measureDuration([&]() { TRY( nvgraphTraversal(h, g, NVGRAPH_TRAVERSAL_BFS, &i, p) ); });
   TRY( nvgraphGetVertexData(h, g, dists.data(), 0) );
   TRY( nvgraphGetVertexData(h, g, preds.data(), 1) );
 

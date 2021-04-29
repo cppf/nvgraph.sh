@@ -1,10 +1,12 @@
 #pragma once
 #include <vector>
+#include <algorithm>
 #include "_nvgraph.h"
 #include "vertices.h"
 #include "edges.h"
 
 using std::vector;
+using std::find;
 
 
 
@@ -21,6 +23,7 @@ auto sssp(float& t, G& x, K u) {
   auto vfrom = sourceOffsets(x);
   auto efrom = destinationIndices(x);
   auto edata = edgeData(x);
+  int i = find(ks.begin(), ks.end(), u) - ks.begin();
 
   TRY( nvgraphCreate(&h) );
   TRY( nvgraphCreateGraphDescr(h, &g) );
@@ -35,7 +38,7 @@ auto sssp(float& t, G& x, K u) {
   TRY( nvgraphAllocateEdgeData  (h, g, etype.size(), etype.data()) );
   TRY( nvgraphSetEdgeData(h, g, edata.data(), 0) );
 
-  t = measureDuration([&]() { TRY( nvgraphSssp(h, g, 0, &u, 0) ); });
+  t = measureDuration([&]() { TRY( nvgraphSssp(h, g, 0, &i, 0) ); });
   TRY( nvgraphGetVertexData(h, g, dists.data(), 1) );
 
   TRY( nvgraphDestroyGraphDescr(h, g) );
