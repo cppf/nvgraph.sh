@@ -22,14 +22,14 @@ struct RunOptions {
   bool   full   = false;
 };
 
+struct RunSsspOptions : public RunOptions {
+  int source = 1;
+};
+
 struct RunPagerankOptions : public RunOptions {
   float  alpha     = 0.85;
   float  tolerance = 1e-6;
   int    max_iter  = 500;
-};
-
-struct RunSsspOptions : public RunOptions {
-  int source = 1;
 };
 
 struct RunTriangleCountOptions : public RunOptions {};
@@ -43,6 +43,8 @@ struct RunTraversalBfsOptions : public RunSsspOptions {
 
 
 // RUN-ERROR
+// ---------
+
 bool runError(string& e) {
   if (e.empty()) return false;
   cerr << "error: " << e << '\n';
@@ -51,6 +53,8 @@ bool runError(string& e) {
 
 
 // RUN-WRITE
+// ---------
+
 void runWrite(stringstream& s, RunOptions& o) {
   ofstream f(o.output);
   writeBegin(f, o.format);
@@ -67,7 +71,6 @@ void runWrite(stringstream& s, RunOptions& o) {
 
 template <class F>
 void runParse(RunOptions& o, int argc, char **argv, F fn) {
-  stringstream s;
   for (int i=2; i<argc; i++) {
     string a = argv[i];
     size_t e = a.find('=');
@@ -76,11 +79,19 @@ void runParse(RunOptions& o, int argc, char **argv, F fn) {
     if (a.find('-')!=0)                o.input  = a;
     else if (k=="-o" || k=="--output") o.output = v();
     else if (k=="-f" || k=="--full")   o.full   = true;
-    else if (!fn(k, v)) s << "unknown option \"" << k << "\"";
+    else if (fn(k, v)) continue;
+    o.error  = "unknown option \"" + k + "\""; break;
   }
   size_t e = o.output.rfind('.');
   o.format = e==string::npos? o.output.substr(e+1) : "json";
-  o.error  = s.str();
+}
+
+void runSsspParse(RunSsspOptions& o, int argc, char **argv) {
+  runParse(o, argc, argv, [&](auto k, auto v) {
+    if (k=="-s" || k=="--source") o.source = stoi(v());
+    else return false;
+    return true;
+  });
 }
 
 void runPagerankParse(RunPagerankOptions& o, int argc, char **argv) {
@@ -88,14 +99,6 @@ void runPagerankParse(RunPagerankOptions& o, int argc, char **argv) {
     if      (k=="-a" || k=="--alpha")     o.alpha     = stof(v());
     else if (k=="-t" || k=="--tolerance") o.tolerance = stof(v());
     else if (k=="-i" || k=="--max_iter")  o.max_iter  = stoi(v());
-    else return false;
-    return true;
-  });
-}
-
-void runSsspParse(RunSsspOptions& o, int argc, char **argv) {
-  runParse(o, argc, argv, [&](auto k, auto v) {
-    if (k=="-s" || k=="--source") o.source = stoi(v());
     else return false;
     return true;
   });
@@ -132,14 +135,6 @@ string runVerify(RunOptions& o) {
   return "";
 }
 
-string runPagerankVerify(RunPagerankOptions& o) {
-  string e = runVerify(o);
-  if (!e.empty()) return e;
-  if (o.alpha<0 || o.alpha>1) return "alpha must be between 0 and 1";
-  if (o.tolerance<1e-10 || o.tolerance>1) return "tolerance must be between 1e-10 and 1";
-  return "";
-}
-
 template <class G>
 string runSsspVerify(RunSsspOptions& o, G& x) {
   stringstream s;
@@ -149,6 +144,14 @@ string runSsspVerify(RunSsspOptions& o, G& x) {
     s << "source vertex \"" << o.source << "\" not in graph";
     return s.str();
   }
+  return "";
+}
+
+string runPagerankVerify(RunPagerankOptions& o) {
+  string e = runVerify(o);
+  if (!e.empty()) return e;
+  if (o.alpha<0 || o.alpha>1) return "alpha must be between 0 and 1";
+  if (o.tolerance<1e-10 || o.tolerance>1) return "tolerance must be between 1e-10 and 1";
   return "";
 }
 
@@ -171,6 +174,14 @@ void runOutput(ostream& a, RunOptions& o, G& x) {
 }
 
 template <class G, class C>
+void runSsspOutput(ostream& a, RunSsspOptions& o, G& x, float t, C& dists) {
+  runOutput(a, o, x);
+  writeValue (a, "source",  o.source, o.format);
+  writeValue (a, "time_ms", t,        o.format);
+  if (o.full) writeValues(a, "distances", dists, o.format);
+}
+
+template <class G, class C>
 void runPagerankOutput(ostream& a, RunPagerankOptions& o, G& x, float t, C& ranks) {
   runOutput(a, o, x);
   writeValue (a, "alpha",     o.alpha,     o.format);
@@ -178,14 +189,6 @@ void runPagerankOutput(ostream& a, RunPagerankOptions& o, G& x, float t, C& rank
   writeValue (a, "max_iter",  o.max_iter,  o.format);
   writeValue (a, "time_ms",   t,           o.format);
   if (o.full) writeValues(a, "ranks", ranks, o.format);
-}
-
-template <class G, class C>
-void runSsspOutput(ostream& a, RunSsspOptions& o, G& x, float t, C& dists) {
-  runOutput(a, o, x);
-  writeValue (a, "source",  o.source, o.format);
-  writeValue (a, "time_ms", t,        o.format);
-  if (o.full) writeValues(a, "distances", dists, o.format);
 }
 
 template <class G>
