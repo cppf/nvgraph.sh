@@ -125,24 +125,20 @@ void runTraversalBfsParse(RunTraversalBfsOptions& o, int argc, char **argv) {
 // ------------
 
 string runVerify(RunOptions& o) {
-  stringstream s;
   if (!o.error.empty()) return o.error;
   if (o.input.empty()) return "no input file given";
   if (!(o.format=="json" || o.format=="yaml")) {
-    s << "unknown format \"" << o.format << "\"";
-    return s.str();
+    return string("unknown format \"") + o.format + "\"";
   }
   return "";
 }
 
 template <class G>
 string runSsspVerify(RunSsspOptions& o, G& x) {
-  stringstream s;
   string e = runVerify(o);
   if (!e.empty()) return e;
   if (!x.hasVertex(o.source)) {
-    s << "source vertex \"" << o.source << "\" not in graph";
-    return s.str();
+    return string("source vertex \"") + to_string(o.source) + "\" not in graph";
   }
   return "";
 }
@@ -255,7 +251,8 @@ void runTriangleCount(int argc, char **argv) {
   e = runVerify(o);
   if (runError(e)) return;
   printf("Loading graph %s ...\n", o.input.c_str());
-  auto x = readMtx(o.input.c_str()); print(x);
+  auto x  = readMtx(o.input.c_str()); print(x);
+  lowerTriangularW(x); print(x);
   uint64_t count = triangleCount(t, x);
   printf("[%.3f ms] nvgraphTriangleCount\n", t);
   runTriangleCountOutput(s, o, x, t, count);

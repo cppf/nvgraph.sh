@@ -20,6 +20,7 @@
 #include "vertices.h"
 #include "edges.h"
 #include "transpose.h"
+#include "triangular.h"
 #include "pagerank.h"
 #include "sssp.h"
 #include "triangleCount.h"
