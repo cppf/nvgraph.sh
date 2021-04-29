@@ -32,8 +32,12 @@ struct RunSsspOptions : public RunOptions {
   int source = 1;
 };
 
-typedef RunOptions RunTriangleCountOptions;
-typedef RunSsspOptions RunTraversalBfsOptions;
+struct RunTriangleCountOptions : public RunOptions {};
+
+struct RunTraversalBfsOptions : public RunSsspOptions {
+  size_t alpha = 0;
+  size_t beta  = 0;
+};
 
 
 
@@ -63,7 +67,7 @@ void runWrite(stringstream& s, RunOptions& o) {
 
 template <class F>
 void runParse(RunOptions& o, int argc, char **argv, F fn) {
-  stringstream estream;
+  stringstream s;
   for (int i=2; i<argc; i++) {
     string a = argv[i];
     size_t e = a.find('=');
@@ -72,11 +76,11 @@ void runParse(RunOptions& o, int argc, char **argv, F fn) {
     if (a.find('-')!=0)                o.input  = a;
     else if (k=="-o" || k=="--output") o.output = v();
     else if (k=="-f" || k=="--full")   o.full   = true;
-    else if (!fn(k, v)) estream << "unknown option \"" << k << "\"";
+    else if (!fn(k, v)) s << "unknown option \"" << k << "\"";
   }
   size_t e = o.output.rfind('.');
   o.format = e==string::npos? o.output.substr(e+1) : "json";
-  o.error  = estream.str();
+  o.error  = s.str();
 }
 
 void runPagerankParse(RunPagerankOptions& o, int argc, char **argv) {
@@ -102,7 +106,13 @@ void runTriangleCountParse(RunTriangleCountOptions& o, int argc, char **argv) {
 }
 
 void runTraversalBfsParse(RunTraversalBfsOptions& o, int argc, char **argv) {
-  runSsspParse(o, argc, argv);
+  runParse(o, argc, argv, [&](auto k, auto v) {
+    if      (k=="-s" || k=="--source") o.source = stoi(v());
+    else if (k=="-a" || k=="--alpha")  o.alpha  = stoi(v());
+    else if (k=="-b" || k=="--beta")   o.beta   = stoi(v());
+    else return false;
+    return true;
+  });
 }
 
 
