@@ -6,6 +6,9 @@ using std::string;
 
 
 
+// INT
+// ---
+
 #ifndef UINT
 typedef unsigned int uint;
 #define UINT uint
@@ -16,6 +19,11 @@ typedef unsigned char uint8;
 #define UINT8 uint8
 #endif
 
+
+
+
+// NONE
+// ----
 
 #ifndef NONE
 struct None {
@@ -31,6 +39,11 @@ struct None {
 #endif
 
 
+
+
+// IDENTITY
+// --------
+
 #ifndef IDENTITY
 struct Identity {
   template <class T>
@@ -40,10 +53,18 @@ struct Identity {
 #endif
 
 
+
+
+// TO-STRING
+// ---------
+
 string to_string(string x) { return x; }
 
 
 
+
+// GET*
+// ----
 
 #ifndef GET2D
 // Gets value at given row, column of 2D array
@@ -52,6 +73,9 @@ string to_string(string x) { return x; }
 
 
 
+
+// ITERATOR, ITERABLE
+// ------------------
 
 #ifndef ITERATOR_DEREF
 #define ITERATOR_DEREF(It, se, be, ae) \
@@ -113,6 +137,9 @@ string to_string(string x) { return x; }
 
 
 
+// ARG-GET*
+// --------
+
 // Gets nth argument.
 #define ARG_GET0(V, ...) V
 #define ARG_GET1(_0, V, ...) V
@@ -134,6 +161,9 @@ string to_string(string x) { return x; }
 
 
 
+
+// ARG-CALL*
+// ---------
 
 // Calls a function each argument.
 #define ARG_CALL0(F,  ...) {}

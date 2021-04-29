@@ -3,6 +3,9 @@
 #include <istream>
 #include <sstream>
 #include <fstream>
+#include <algorithm>
+#include <type_traits>
+#include "_support.h"
 #include "DiGraph.h"
 
 using std::string;
@@ -11,6 +14,8 @@ using std::ifstream;
 using std::stringstream;
 using std::ios;
 using std::getline;
+using std::equal;
+using std::is_arithmetic;
 
 
 
@@ -20,25 +25,33 @@ using std::getline;
 
 template <class G>
 void readMtx(G& a, istream& s) {
+  using E = typename G::TEdge;
   // read rows, cols, size
   string ln;
+  bool sym = false;
+  while (1) {
+    getline(s, ln);
+    if (ln.find('%')!=0) break;
+    if (ln.find("%%")!=0) continue;
+    sym = ln.rfind("asymmetric")==string::npos;
+  }
   int r, c, sz;
-  do { getline(s, ln); }
-  while (ln[0] == '%');
   stringstream ls(ln);
   ls >> r >> c >> sz;
 
   // read edges (from, to)
   while (getline(s, ln)) {
-    int u, v;
-    ls = stringstream(ln);
+    int u, v; E w = E();
+    stringstream ls(ln);
     if (!(ls >> u >> v)) break;
-    a.addEdge(u, v);
+    if (is_arithmetic<E>::value) ls >> w;
+    a.addEdge(u, v, w);
+    if (sym) a.addEdge(v, u, w);
   }
 }
 
 auto readMtx(istream& s) {
-  DiGraph<> a; readMtx(a, s);
+  DiGraph<int, NONE, float> a; readMtx(a, s);
   return a;
 }
 
@@ -46,13 +59,13 @@ auto readMtx(istream& s) {
 template <class G>
 void readMtx(G& a, const char *pth) {
   ifstream f(pth);
-  stringstream s;
+  string s0; stringstream s(s0);
   s << f.rdbuf();
   f.close();
   readMtx(a, s);
 }
 
 auto readMtx(const char *pth) {
-  DiGraph<> a; readMtx(a, pth);
+  DiGraph<int, NONE, float> a; readMtx(a, pth);
   return a;
 }

@@ -22,7 +22,7 @@ void writeMtx(ostream& a, const G& g) {
   a << g.order() << " " << g.order() << " " << g.size() << "\n";
   for (auto&& u : g.vertices()) {
     for (auto&& v : g.edges(u))
-      a << u << " " << v << " " << (int) g.edgeData(u) << "\n";
+      a << u << " " << v << " " << g.edgeData(u) << "\n";
   }
 }
 
@@ -30,7 +30,7 @@ void writeMtx(ostream& a, const G& g) {
 template <class G>
 void writeMtx(const char *pth, const G& g) {
   ofstream f(pth);
-  stringstream s;
+  string s0; stringstream s(s0);
   writeMtx(s, g);
   f << s.rdbuf();
   f.close();

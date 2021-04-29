@@ -10,7 +10,7 @@ using namespace std;
 
 
 int main(int argc, char **argv) {
-  string cmd = argv[1];
+  string cmd = argc>1? argv[1] : "";
   if (cmd=="shortest-path")  cmd = "sssp";
   else if (cmd=="pr")        cmd = "pagerank";
   else if (cmd=="bfs")       cmd = "traversal-bfs";

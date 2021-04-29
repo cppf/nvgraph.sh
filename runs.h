@@ -211,7 +211,7 @@ void runTraversalBfsOutput(ostream& a, RunTraversalBfsOptions& o, G& x, float t,
 
 void runSssp(int argc, char **argv) {
   RunSsspOptions o; float t;
-  stringstream s; string e;
+  string e, s0; stringstream s(s0);
   runSsspParse(o, argc, argv);
   e = runVerify(o);
   if (runError(e)) return;
@@ -229,7 +229,7 @@ void runSssp(int argc, char **argv) {
 
 void runPagerank(int argc, char **argv) {
   RunPagerankOptions o; float t;
-  stringstream s; string e;
+  string e, s0; stringstream s(s0);
   runPagerankParse(o, argc, argv);
   runPagerankVerify(o);
   if (runError(e)) return;
@@ -246,7 +246,7 @@ void runPagerank(int argc, char **argv) {
 
 void runTriangleCount(int argc, char **argv) {
   RunTriangleCountOptions o; float t;
-  stringstream s; string e;
+  string e, s0; stringstream s(s0);
   runTriangleCountParse(o, argc, argv);
   e = runVerify(o);
   if (runError(e)) return;
@@ -262,7 +262,7 @@ void runTriangleCount(int argc, char **argv) {
 
 void runTraversalBfs(int argc, char **argv) {
   RunTraversalBfsOptions o; float t;
-  stringstream s; string e;
+  string e, s0; stringstream s(s0);
   runTraversalBfsParse(o, argc, argv);
   e = runVerify(o);
   if (runError(e)) return;
@@ -270,9 +270,9 @@ void runTraversalBfs(int argc, char **argv) {
   auto x = readMtx(o.input.c_str()); print(x);
   e = runTraversalBfsVerify(o, x);
   if (runError(e)) return;
-  auto [dists, preds] = traversalBfs(t, x, o.source, o.alpha, o.beta);
+  auto a = traversalBfs(t, x, o.source, o.alpha, o.beta);
   printf("[%.3f ms] nvgraphTraversalBfs\n", t);
   if (o.output.empty()) return;
-  runTraversalBfsOutput(s, o, x, t, dists, preds);
+  runTraversalBfsOutput(s, o, x, t, a.distances, a.predecessors);
   runWrite(s, o);
 }
