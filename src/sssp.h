@@ -12,7 +12,7 @@ using std::find;
 
 
 template <class G, class K>
-auto sssp(float& t, G& x, K u) {
+auto sssp(float& t, int T, G& x, K u) {
   nvgraphHandle_t     h;
   nvgraphGraphDescr_t g;
   struct nvgraphCSCTopology32I_st csc;
@@ -38,7 +38,7 @@ auto sssp(float& t, G& x, K u) {
   TRY( nvgraphAllocateEdgeData  (h, g, etype.size(), etype.data()) );
   TRY( nvgraphSetEdgeData(h, g, edata.data(), 0) );
 
-  t = measureDuration([&]() { TRY( nvgraphSssp(h, g, 0, &i, 0) ); });
+  t = measureDuration([&]() { TRY( nvgraphSssp(h, g, 0, &i, 0) ); }, T);
   TRY( nvgraphGetVertexData(h, g, dists.data(), 1) );
 
   TRY( nvgraphDestroyGraphDescr(h, g) );

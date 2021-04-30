@@ -19,6 +19,7 @@ struct RunOptions {
   string input;
   string output;
   string format = "json";
+  int    repeat = 1;
   bool   full   = false;
 };
 
@@ -78,6 +79,7 @@ void runParse(RunOptions& o, int argc, char **argv, F fn) {
     auto v = [&]() { return e==string::npos? argv[++i] : a.substr(e+1); };
     if (a.find('-')!=0)                o.input  = a;
     else if (k=="-o" || k=="--output") o.output = v();
+    else if (k=="-r" || k=="--repeat") o.repeat = stoi(v());
     else if (k=="-f" || k=="--full")   o.full   = true;
     else if (fn(k, v)) continue;
     o.error  = "unknown option \"" + k + "\""; break;
@@ -219,7 +221,7 @@ void runSssp(int argc, char **argv) {
   auto x = readMtx(o.input.c_str()); print(x);
   e = runSsspVerify(o, x);
   if (runError(e)) return;
-  auto dists = sssp(t, x, o.source);
+  auto dists = sssp(t, o.repeat, x, o.source);
   printf("[%.3f ms] nvgraphSssp\n", t);
   if (o.output.empty()) return;
   runSsspOutput(s, o, x, t, dists);
@@ -236,7 +238,7 @@ void runPagerank(int argc, char **argv) {
   printf("Loading graph %s ...\n", o.input.c_str());
   auto x  = readMtx(o.input.c_str()); print(x);
   auto xt = transposeForNvgraph(x);   print(xt);
-  auto ranks = pagerank(t, xt, o.alpha, o.tolerance, o.max_iter);
+  auto ranks = pagerank(t, o.repeat, xt, o.alpha, o.tolerance, o.max_iter);
   printf("[%.3f ms] nvgraphPagerank\n", t);
   if (o.output.empty()) return;
   runPagerankOutput(s, o, x, t, ranks);
@@ -253,7 +255,7 @@ void runTriangleCount(int argc, char **argv) {
   printf("Loading graph %s ...\n", o.input.c_str());
   auto x  = readMtx(o.input.c_str()); print(x);
   lowerTriangularW(x); print(x);
-  uint64_t count = triangleCount(t, x);
+  uint64_t count = triangleCount(t, o.repeat, x);
   printf("[%.3f ms] nvgraphTriangleCount\n", t);
   runTriangleCountOutput(s, o, x, t, count);
   runWrite(s, o);
@@ -270,7 +272,7 @@ void runTraversalBfs(int argc, char **argv) {
   auto x = readMtx(o.input.c_str()); print(x);
   e = runTraversalBfsVerify(o, x);
   if (runError(e)) return;
-  auto a = traversalBfs(t, x, o.source, o.alpha, o.beta);
+  auto a = traversalBfs(t, o.repeat, x, o.source, o.alpha, o.beta);
   printf("[%.3f ms] nvgraphTraversalBfs\n", t);
   if (o.output.empty()) return;
   runTraversalBfsOutput(s, o, x, t, a.distances, a.predecessors);

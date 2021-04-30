@@ -10,7 +10,7 @@ using std::vector;
 
 
 template <class G>
-auto pagerank(float& t, G& x, float p=0.85f, float E=1e-6f, int R=0) {
+auto pagerank(float& t, int T, G& x, float p=0.85f, float E=1e-6f, int R=0) {
   nvgraphHandle_t     h;
   nvgraphGraphDescr_t g;
   struct nvgraphCSCTopology32I_st csc;
@@ -38,7 +38,7 @@ auto pagerank(float& t, G& x, float p=0.85f, float E=1e-6f, int R=0) {
   TRY( nvgraphSetVertexData(h, g, ranks.data(), 1) );
   TRY( nvgraphSetEdgeData  (h, g, edata.data(), 0) );
 
-  t = measureDuration([&]() { TRY( nvgraphPagerank(h, g, 0, &p, 0, 0, 1, E, R) ); });
+  t = measureDuration([&]() { TRY( nvgraphPagerank(h, g, 0, &p, 0, 0, 1, E, R) ); }, T);
   TRY( nvgraphGetVertexData(h, g, ranks.data(), 1) );
 
   TRY( nvgraphDestroyGraphDescr(h, g) );

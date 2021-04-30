@@ -11,7 +11,7 @@ using std::vector;
 
 
 template <class G>
-auto triangleCount(float& t, G& x) {
+auto triangleCount(float& t, int T, G& x) {
   nvgraphHandle_t     h;
   nvgraphGraphDescr_t g;
   struct nvgraphCSRTopology32I_st csr;
@@ -29,7 +29,7 @@ auto triangleCount(float& t, G& x) {
   TRY( nvgraphSetGraphStructure(h, g, &csr, NVGRAPH_CSR_32) );
 
   uint64_t count = 0;
-  t = measureDuration([&]() { TRY( nvgraphTriangleCount(h, g, &count) ); });
+  t = measureDuration([&]() { TRY( nvgraphTriangleCount(h, g, &count) ); }, T);
 
   TRY( nvgraphDestroyGraphDescr(h, g) );
   TRY( nvgraphDestroy(h) );
