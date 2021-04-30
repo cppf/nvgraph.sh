@@ -21,7 +21,6 @@ You can install this with `npm install -g nvgraph.sh`.
 - [nvGraph pagerank example, CUDA Toolkit Documentation](https://docs.nvidia.com/cuda/archive/10.0/nvgraph/index.html#nvgraph-pagerank-example)
 - [nvGraph, CUDA Toolkit Documentation](https://docs.nvidia.com/cuda/archive/10.0/nvgraph/index.html#introduction)
 - [RAPIDS nvGraph NVIDIA graph library](https://github.com/rapidsai/nvgraph)
-- [Get path of current script when executed through a symlink](https://unix.stackexchange.com/a/17500/166668)
 
 <br>
 <br>
