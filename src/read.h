@@ -8,14 +8,29 @@
 #include "_support.h"
 #include "DiGraph.h"
 
+using std::ios;
 using std::string;
 using std::istream;
 using std::ifstream;
-using std::stringstream;
-using std::ios;
-using std::getline;
-using std::equal;
+using std::istringstream;
 using std::is_arithmetic;
+using std::getline;
+using std::max;
+
+
+
+
+// READ-FILE
+// ---------
+
+string readFile(const char *pth) {
+  string a; ifstream f(pth);
+  f.seekg(0, ios::end);
+  a.resize(f.tellg());
+  f.seekg(0);
+  f.read((char*) a.data(), a.size());
+  return a;
+}
 
 
 
@@ -26,27 +41,36 @@ using std::is_arithmetic;
 template <class G>
 void readMtx(G& a, istream& s) {
   using E = typename G::TEdge;
+  string ln, h0, h1, h2, h3, h4;
+
   // read rows, cols, size
-  string ln;
-  bool sym = false;
+  // read header
   while (1) {
     getline(s, ln);
     if (ln.find('%')!=0) break;
     if (ln.find("%%")!=0) continue;
-    sym = ln.rfind("asymmetric")==string::npos;
+    istringstream ls(ln);
+    ls >> h0 >> h1 >> h2 >> h3 >> h4;
   }
+  if (h1!="matrix" || h2!="coordinate") return;
+  bool sym = h4=="symmetric" || h4=="skew-symmetric";
+
+  // read rows, cols, size
   int r, c, sz;
-  stringstream ls(ln);
+  istringstream ls(ln);
   ls >> r >> c >> sz;
+  int n = max(r, c);
+  for (int u=1; u<=n; u++)
+    a.addVertex(u);
 
   // read edges (from, to)
   while (getline(s, ln)) {
     int u, v; E w = E();
-    stringstream ls(ln);
+    ls = istringstream(ln);
     if (!(ls >> u >> v)) break;
     if (is_arithmetic<E>::value) ls >> w;
-    a.addEdge(u, v, w);
-    if (sym) a.addEdge(v, u, w);
+    a.addEdge(u, v);
+    if (sym) a.addEdge(v, u);
   }
 }
 
@@ -58,11 +82,9 @@ auto readMtx(istream& s) {
 
 template <class G>
 void readMtx(G& a, const char *pth) {
-  ifstream f(pth);
-  string s0; stringstream s(s0);
-  s << f.rdbuf();
-  f.close();
-  readMtx(a, s);
+  string buf = readFile(pth);
+  istringstream s(buf);
+  return readMtx(a, s);
 }
 
 auto readMtx(const char *pth) {
