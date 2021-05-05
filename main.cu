@@ -1,7 +1,5 @@
 #include <string>
-#include <vector>
 #include <stdio.h>
-#include "src/main.h"
 #include "runs.h"
 
 using namespace std;
@@ -10,7 +8,7 @@ using namespace std;
 
 
 int main(int argc, char **argv) {
-  string cmd = argc>1? argv[1] : "";
+  string cmd = argc>1? argv[1] : "help";
   if (cmd=="shortest-path")  cmd = "sssp";
   else if (cmd=="pr")        cmd = "pagerank";
   else if (cmd=="bfs")       cmd = "traversal-bfs";
@@ -20,6 +18,7 @@ int main(int argc, char **argv) {
   else if (cmd=="pagerank"      ) runPagerank(argc, argv);
   else if (cmd=="traversal-bfs" ) runTraversalBfs(argc, argv);
   else if (cmd=="triangle-count") runTriangleCount(argc, argv);
+  else printf("error: unknown command \"%s\"\n", cmd.c_str());
   printf("\n");
   return 0;
 }
