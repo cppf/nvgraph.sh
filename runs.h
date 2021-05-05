@@ -129,9 +129,8 @@ void runTraversalBfsParse(RunTraversalBfsOptions& o, int argc, char **argv) {
 string runVerify(RunOptions& o) {
   if (!o.error.empty()) return o.error;
   if (o.input.empty()) return "no input file given";
-  if (!(o.format=="json" || o.format=="yaml")) {
-    return string("unknown format \"") + o.format + "\"";
-  }
+  if (!existsFile(o.input.c_str())) return string("file \"") + o.input + "\" does not exist";
+  if (!(o.format=="json" || o.format=="yaml")) return string("unknown format \"") + o.format + "\"";
   return "";
 }
 
@@ -139,9 +138,7 @@ template <class G>
 string runSsspVerify(RunSsspOptions& o, G& x) {
   string e = runVerify(o);
   if (!e.empty()) return e;
-  if (!x.hasVertex(o.source)) {
-    return string("source vertex \"") + to_string(o.source) + "\" not in graph";
-  }
+  if (!x.hasVertex(o.source)) return string("source vertex \"") + to_string(o.source) + "\" not in graph";
   return "";
 }
 
