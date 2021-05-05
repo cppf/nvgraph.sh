@@ -82,7 +82,7 @@ void runParse(RunOptions& o, int argc, char **argv, F fn) {
     else if (k=="-r" || k=="--repeat") o.repeat = stoi(v());
     else if (k=="-f" || k=="--full")   o.full   = true;
     else if (fn(k, v)) continue;
-    o.error  = "unknown option \"" + k + "\""; break;
+    else { o.error  = "unknown option \"" + k + "\""; break; }
   }
   size_t e = o.output.rfind('.');
   o.format = e==string::npos? o.output.substr(e+1) : "json";
@@ -230,7 +230,7 @@ void runPagerank(int argc, char **argv) {
   RunPagerankOptions o; float t;
   string e, s0; stringstream s(s0);
   runPagerankParse(o, argc, argv);
-  runPagerankVerify(o);
+  e = runPagerankVerify(o);
   if (runError(e)) return;
   printf("Loading graph %s ...\n", o.input.c_str());
   auto x  = readMtx(o.input.c_str()); println(x);
