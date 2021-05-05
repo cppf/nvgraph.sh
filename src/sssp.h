@@ -39,7 +39,7 @@ auto sssp(float& t, int T, G& x, K u) {
   TRY( nvgraphSetEdgeData(h, g, edata.data(), 0) );
 
   t = measureDuration([&]() { TRY( nvgraphSssp(h, g, 0, &i, 0) ); }, T);
-  TRY( nvgraphGetVertexData(h, g, dists.data(), 1) );
+  TRY( nvgraphGetVertexData(h, g, dists.data(), 0) );
 
   TRY( nvgraphDestroyGraphDescr(h, g) );
   TRY( nvgraphDestroy(h) );
