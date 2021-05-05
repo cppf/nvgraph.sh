@@ -218,7 +218,7 @@ void runSssp(int argc, char **argv) {
   e = runVerify(o);
   if (runError(e)) return;
   printf("Loading graph %s ...\n", o.input.c_str());
-  auto x = readMtx(o.input.c_str()); print(x);
+  auto x = readMtx(o.input.c_str()); println(x);
   e = runSsspVerify(o, x);
   if (runError(e)) return;
   auto dists = sssp(t, o.repeat, x, o.source);
@@ -236,8 +236,8 @@ void runPagerank(int argc, char **argv) {
   runPagerankVerify(o);
   if (runError(e)) return;
   printf("Loading graph %s ...\n", o.input.c_str());
-  auto x  = readMtx(o.input.c_str()); print(x);
-  auto xt = transposeForNvgraph(x);   print(xt);
+  auto x  = readMtx(o.input.c_str()); println(x);
+  auto xt = transposeForNvgraph(x);   print(xt); printf(" (transpose)\n");
   auto ranks = pagerank(t, o.repeat, xt, o.alpha, o.tolerance, o.max_iter);
   printf("[%.3f ms] nvgraphPagerank\n", t);
   if (o.output.empty()) return;
@@ -253,8 +253,8 @@ void runTriangleCount(int argc, char **argv) {
   e = runVerify(o);
   if (runError(e)) return;
   printf("Loading graph %s ...\n", o.input.c_str());
-  auto x  = readMtx(o.input.c_str()); print(x);
-  lowerTriangularW(x); print(x);
+  auto x  = readMtx(o.input.c_str()); println(x);
+  lowerTriangularW(x); println(x);
   uint64_t count = triangleCount(t, o.repeat, x);
   printf("[%.3f ms] nvgraphTriangleCount\n", t);
   runTriangleCountOutput(s, o, x, t, count);
@@ -269,7 +269,7 @@ void runTraversalBfs(int argc, char **argv) {
   e = runVerify(o);
   if (runError(e)) return;
   printf("Loading graph %s ...\n", o.input.c_str());
-  auto x = readMtx(o.input.c_str()); print(x);
+  auto x = readMtx(o.input.c_str()); println(x);
   e = runTraversalBfsVerify(o, x);
   if (runError(e)) return;
   auto a = traversalBfs(t, o.repeat, x, o.source, o.alpha, o.beta);
