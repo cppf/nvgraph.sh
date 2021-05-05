@@ -250,8 +250,8 @@ void runTriangleCount(int argc, char **argv) {
   e = runVerify(o);
   if (runError(e)) return;
   printf("Loading graph %s ...\n", o.input.c_str());
-  auto x  = readMtx(o.input.c_str()); println(x);
-  lowerTriangularW(x); println(x);
+  auto x = readMtx(o.input.c_str()); println(x);
+  lowerTriangularW(x); print(x); printf(" (lowerTriangular)\n");
   uint64_t count = triangleCount(t, o.repeat, x);
   printf("[%.3f ms] nvgraphTriangleCount\n", t);
   runTriangleCountOutput(s, o, x, t, count);
